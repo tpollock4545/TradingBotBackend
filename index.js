@@ -99,3 +99,23 @@ app.post("/setkscoids", async (req, res) => {
 
   res.send({ message: `${updatedSymbolsCount} symbols updated successfully.` });
 });
+
+app.get("/ksoidsToSet", async (req, res) => {
+  const collection = await getScoidCollection();
+
+  // Find symbols where 'ksoid' is missing or blank
+  const symbols = await collection
+    .find(
+      {
+        $or: [{ ksoid: { $exists: false } }, { ksoid: "" }],
+      },
+      { projection: { symbol: 1, _id: 0 } }
+    )
+    .toArray();
+
+  // Extract just the symbols from the query results
+  const symbolList = symbols.map((s) => s.symbol);
+
+  // Send the list of symbols as the response
+  res.send(symbolList);
+});
