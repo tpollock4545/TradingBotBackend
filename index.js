@@ -74,3 +74,28 @@ app.post("/updatenewstocks", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });
+
+app.post("/setkscoids", async (req, res) => {
+  const collection = await getScoidCollection();
+
+  // The request data from JavaScript will be in JSON format
+  let kscoids = req.body;
+
+  // Keep track of the count of updated symbols
+  let updatedSymbolsCount = 0;
+
+  // For each symbol in kscoids, update the ksoid in the database
+  for (const symbol in kscoids) {
+    let updatedDocument = await collection.updateOne(
+      { symbol: symbol },
+      { $set: { ksoid: kscoids[symbol] } }
+    );
+
+    // If MongoDB successfully updated the document (i.e., modified count is 1)
+    if (updatedDocument.modifiedCount === 1) {
+      updatedSymbolsCount++;
+    }
+  }
+
+  res.send({ message: `${updatedSymbolsCount} symbols updated successfully.` });
+});
